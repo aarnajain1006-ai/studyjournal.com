@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Study Quest — Study. Prove it. Level up.</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(135deg,#f7f7ff,#eef7ff);color:#182033}
+.app{max-width:1100px;margin:auto;padding:28px}
+header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:24px}
+.logo{font-size:28px;font-weight:900}.tag{font-size:13px;color:#687089}
+.stats{display:flex;gap:10px;flex-wrap:wrap}.pill{background:#fff;border:1px solid #e4e7f2;padding:9px 13px;border-radius:999px;font-weight:700;box-shadow:0 4px 15px #18203310}
+.grid{display:grid;grid-template-columns:1.4fr .9fr;gap:18px}
+.card{background:#fff;border:1px solid #e5e8f1;border-radius:22px;padding:22px;box-shadow:0 12px 35px #1820330d;margin-bottom:18px}
+h1{font-size:34px;margin:0 0 8px}h2{margin:0 0 15px;font-size:21px}h3{margin:0 0 8px}
+.muted{color:#69728a}.quote{font-size:18px;font-weight:700;line-height:1.5}
+input,select{width:100%;padding:13px;border:1px solid #dfe3ee;border-radius:12px;margin:6px 0 12px;font-size:15px;background:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{border:0;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;font-size:14px}
+.primary{background:#5b4bdb;color:#fff}.secondary{background:#f0efff;color:#4b3bc2}.green{background:#e8f8ee;color:#18733c}.orange{background:#fff2df;color:#a65b00}
+button:hover{transform:translateY(-1px)}
+.progress{height:12px;background:#eceef5;border-radius:99px;overflow:hidden}.bar{height:100%;width:0;background:#5b4bdb;transition:.4s}
+.quest{padding:15px;border:1px solid #e5e8f1;border-radius:15px;margin:10px 0;background:#fafbff}
+.badges{display:flex;flex-wrap:wrap;gap:8px}.badge{padding:8px 11px;border-radius:12px;background:#f3f2ff;font-size:13px;font-weight:800}
+.challenge{font-weight:800;font-size:17px;line-height:1.4}
+.log{max-height:260px;overflow:auto}.logitem{padding:10px 0;border-bottom:1px solid #edf0f5}
+.small{font-size:12px}.danger{color:#a44}.success{color:#18733c}
+@media(max-width:800px){.grid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><div class="logo">🎯 Study Quest</div><div class="tag">Study. Prove it. Level up.</div></div>
+  <div class="stats"><span class="pill">⭐ <span id="xp">0</span> XP</span><span class="pill">🔥 <span id="streak">0</span> day streak</span><span class="pill">🏆 Level <span id="level">1</span></span></div>
+</header>
+
+<div class="grid">
+<main>
+<section class="card">
+<h1 id="greeting">Ready to study?</h1>
+<p class="quote" id="motivation">“You don't need to feel motivated to begin. Begin, and motivation often follows.”</p>
+<div class="row">
+<div><label>📚 Subject</label><input id="subject" placeholder="e.g. Physics"></div>
+<div><label>📖 Topic</label><input id="topic" placeholder="e.g. Ray Optics"></div>
+</div>
+<div class="row">
+<div><label>⏱️ Minutes studied</label><input id="minutes" type="number" min="1" placeholder="45"></div>
+<div><label>🎯 Confidence after studying</label>
+<select id="confidence"><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+</div>
+<button class="primary" onclick="completeSession()">✅ I completed my study session</button>
+<button class="secondary" onclick="skippedSession()">😅 I procrastinated</button>
+</section>
+
+<section class="card">
+<h2>🎯 My Goal</h2>
+<input id="goal" placeholder="e.g. Finish Class 10 Physics by Friday">
+<div class="row">
+<div><label>Daily target (minutes)</label><input id="target" type="number" min="5" value="60"></div>
+<div><label>Target days</label><input id="days" type="number" min="1" value="7"></div>
+</div>
+<button class="primary" onclick="saveGoal()">Save goal</button>
+<p id="goalText" class="muted"></p>
+<div class="progress"><div class="bar" id="bar"></div></div>
+</section>
+
+<section class="card">
+<h2>⚔️ Today's Quest</h2>
+<div class="quest"><div class="challenge" id="challenge">Start a study session to unlock today's challenge.</div><p class="muted small">Challenges are designed to make studying active and useful—not to punish you.</p></div>
+<button class="green" onclick="newChallenge()">🎲 Give me another challenge</button>
+</section>
+</main>
+
+<aside>
+<section class="card">
+<h2>🌟 Appreciation</h2>
+<p id="appreciation" class="quote">Your next win can be small. Small wins count.</p>
+<div class="badges" id="badges"></div>
+</section>
+
+<section class="card">
+<h2>😂 Study Buddy</h2>
+<p id="joke" class="quote">Your textbook has been waiting patiently. It is beginning to wonder if you're in a long-distance relationship. 📖😂</p>
+<button class="secondary" onclick="newJoke()">Another joke</button>
+</section>
+
+<section class="card">
+<h2>📊 Your Progress</h2>
+<p>Today: <b><span id="todayMin">0</span> min</b></p>
+<p>Total: <b><span id="totalMin">0</span> min</b></p>
+<p>Sessions: <b><span id="sessions">0</span></b></p>
+<div class="log" id="log"></div>
+</section>
+</aside>
+</div>
+</div>
+
+<script>
+const challenges=[
+"🧠 Active Recall: Close your notes and explain the topic aloud in 60 seconds.",
+"✍️ Solve 5 questions without checking the answer until the end.",
+"🗺️ Make a one-page mind map of what you just studied.",
+"🎓 Teach the topic to an imaginary student in your own words.",
+"🔎 Find 3 things you still don't understand and mark them for revision.",
+"⚡ Speed Round: write 10 key facts from memory in 3 minutes.",
+"🧪 Create 5 quiz questions from today's chapter and answer them.",
+"🔁 Spaced Revision: review yesterday's toughest concept for 10 minutes."
+];
+const jokes=[
+"Your textbook has been waiting patiently. It is beginning to wonder if you're in a long-distance relationship. 📖😂",
+"You opened your book. That's already a plot twist. 😂",
+"BREAKING NEWS 📰: Student studies instead of scrolling. Scientists are confused but impressed.",
+"Future You just sent a message: “THANK YOU FOR STUDYING TODAY.” 😭🙏",
+"That chapter thought it could defeat you. It clearly underestimated your stubbornness. 😎",
+"Your notes are not going to read themselves. Trust me, they tried. 😂"
+];
+const motivations=[
+"Start for 5 minutes. You can decide what happens next.",
+"Consistency beats a perfect day that never happens.",
+"One focused session is a vote for the person you want to become.",
+"Don't wait for motivation. Give motivation something to catch up with.",
+"Progress is allowed to be messy. Just keep moving."
+];
+let data=JSON.parse(localStorage.getItem("studyQuest")||'{"xp":0,"streak":0,"last":"","today":0,"total":0,"sessions":0,"goal":"","target":60,"days":7,"history":[]}');
+
+function save(){localStorage.setItem("studyQuest",JSON.stringify(data));render()}
+function level(){return Math.floor(data.xp/500)+1}
+function render(){
+ document.getElementById("xp").textContent=data.xp;
+ document.getElementById("streak").textContent=data.streak;
+ document.getElementById("level").textContent=level();
+ document.getElementById("todayMin").textContent=data.today;
+ document.getElementById("totalMin").textContent=data.total;
+ document.getElementById("sessions").textContent=data.sessions;
+ document.getElementById("goalText").textContent=data.goal?`🎯 ${data.goal} — ${data.target} min/day for ${data.days} days`:"Set a goal and turn it into a daily mission.";
+ document.getElementById("bar").style.width=Math.min(100,(data.today/Math.max(1,data.target))*100)+"%";
+ let b=[]; if(data.sessions>=1)b.push("🌱 First Session"); if(data.streak>=3)b.push("🔥 3-Day Streak"); if(data.streak>=7)b.push("👑 Week Warrior"); if(data.total>=300)b.push("📚 5-Hour Scholar"); if(data.xp>=1000)b.push("⭐ 1000 XP");
+ document.getElementById("badges").innerHTML=b.map(x=>`<span class="badge">${x}</span>`).join("")||'<span class="muted small">Your first badge is waiting…</span>';
+ document.getElementById("log").innerHTML=data.history.slice().reverse().map(x=>`<div class="logitem"><b>${x.subject||"Study"}</b> — ${x.topic||"Session"}<br><span class="muted small">${x.minutes} min • ${x.date}</span></div>`).join("")||'<p class="muted small">No sessions yet. Your first one is the hardest boss.</p>';
+}
+function completeSession(){
+ let s=document.getElementById("subject").value.trim(), t=document.getElementById("topic").value.trim(), m=Number(document.getElementById("minutes").value);
+ if(!m){alert("Enter how many minutes you studied.");return}
+ let today=new Date().toDateString();
+ if(data.last!==today){data.streak=data.last===new Date(Date.now()-86400000).toDateString()?data.streak+1:1;data.last=today;data.today=0}
+ data.today+=m;data.total+=m;data.sessions++;data.xp+=100+Math.min(100,Math.floor(m/2));
+ data.history.push({subject:s,topic:t,minutes:m,date:today});
+ document.getElementById("challenge").textContent=challenges[Math.floor(Math.random()*challenges.length)];
+ document.getElementById("appreciation").textContent=`🎉 ${m} minutes done! You showed up, focused, and moved forward. That's a real win.`;
+ document.getElementById("motivation").textContent=motivations[Math.floor(Math.random()*motivations.length)];
+ newJoke();save();
+}
+function skippedSession(){
+ document.getElementById("challenge").textContent="⚔️ COMEBACK QUEST: Set a timer for 15 minutes and do one tiny task from today's plan. Finish it, then come back and log it.";
+ document.getElementById("appreciation").textContent="No guilt. No drama. Just a reset. Your comeback starts with the next 15 minutes. 💪";
+ document.getElementById("motivation").textContent="A missed session is a moment, not your identity. Restart now.";
+ newJoke();
+}
+function saveGoal(){data.goal=document.getElementById("goal").value.trim();data.target=Number(document.getElementById("target").value)||60;data.days=Number(document.getElementById("days").value)||7;save();document.getElementById("appreciation").textContent="🎯 Goal locked in! Now turn it into small daily wins."}
+function newChallenge(){document.getElementById("challenge").textContent=challenges[Math.floor(Math.random()*challenges.length)]}
+function newJoke(){document.getElementById("joke").textContent=jokes[Math.floor(Math.random()*jokes.length)]}
+render();newChallenge();
+</script>
+</body>
+</html>
